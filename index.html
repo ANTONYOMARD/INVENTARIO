@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Almacén</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #busqueda {
+      display: block;
+      margin: 20px auto;
+      padding: 10px;
+      width: 50%;
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #333;
+      color: white;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Almacén</h1>
+
+  <input type="text" id="busqueda" placeholder="Buscar...">
+
+  <table id="tabla">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let datosGlobal = [];
+
+    fetch('INVENTARIO.csv')
+      .then(response => response.text())
+      .then(data => {
+        let filas = data.trim().split('\n');
+        
+        let headers = filas[0].split(';');
+        let indexUSB = headers.findIndex(h => h.toLowerCase().includes('usb'));
+        let indexobs = headers.findIndex(h => h.toLowerCase().includes('observadas'));
+
+        let thead = document.querySelector('#tabla thead');
+        let trHead = document.createElement('tr');
+
+        headers.forEach(h => {
+          let th = document.createElement('th');
+          th.textContent = h;
+          trHead.appendChild(th);
+        });
+
+        thead.appendChild(trHead);
+
+        // Guardamos el índice global
+        window.indexUSB = indexUSB;
+
+        // Datos
+        datosGlobal = filas.slice(1).map(fila => fila.split(';'));
+
+        renderTabla(datosGlobal);
+      });
+
+    function renderTabla(datos) {
+  let tbody = document.querySelector('#tabla tbody');
+  tbody.innerHTML = '';
+
+  datos.forEach(fila => {
+    let tr = document.createElement('tr');
+
+    fila.forEach((col, index) => {
+      let td = document.createElement('td');
+      td.textContent = col;
+
+      // Detectar columna "comida favorita"
+      
+      if (index === indexUSB) {
+        let valor = col.toLowerCase();
+
+        if (valor.includes('no')) {
+          td.style.backgroundColor = 'red';
+          td.style.color = 'white';
+        } 
+      }
+
+
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+    // Buscador
+    document.getElementById('busqueda').addEventListener('keyup', function() {
+      let texto = this.value.toLowerCase();
+
+      let filtrados = datosGlobal.filter(fila =>
+        fila.some(col => col.toLowerCase().includes(texto))
+      );
+
+      renderTabla(filtrados);
+    });
+  </script>
+
+</body>
+</html>
